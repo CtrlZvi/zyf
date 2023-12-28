@@ -9,16 +9,23 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "better-sqlite3": "^9.2.2",
+    "drizzle-orm": "^0.29.2",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "drizzle-kit": "^0.20.9",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
+    "eslint-plugin-drizzle": "^0.2.3",
     "typescript": "^5"
   }
 }

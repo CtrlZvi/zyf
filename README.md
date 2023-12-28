@@ -38,6 +38,12 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
+## Updating the database schema
+
+To update the database schema, first ensure that the new schema is recorded in
+a schema.ts file. Then run `npx drizzle-kit gnerate:sqlite`. Lastly, restart
+the Next.js server as migrations only run on cold start.
+
 ## Where does the name come from?
 
 I decided I wanted to spend a year focusing on my finance's and putting myself
