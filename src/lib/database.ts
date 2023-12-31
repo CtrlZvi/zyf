@@ -10,10 +10,10 @@ export function performMigrations() {
     migrate(database, { migrationsFolder: '.drizzle' });
 }
 
-function migrateIfNecessary<This, Args extends any[], Return>(original: (this: This, ...args: Args) => Return) {
-    const replacement = function (this: This, ...args: Args) {
+function migrateIfNecessary<This, Args extends any[], Return>(original: (this: This, ...args: Args) => Promise<Return>): (this: This, ...args: Args) => Promise<Return> {
+    const replacement = async function (this: This, ...args: Args) {
         try {
-            return original.apply(this, args);
+            return await original.apply(this, args);
         } catch (error) {
             if (process.env.NODE_ENV !== 'development') {
                 // We only automigrate in development as a convenience to the
@@ -41,10 +41,10 @@ function migrateIfNecessary<This, Args extends any[], Return>(original: (this: T
     return replacement;
 }
 
-export const fetchAccounts = migrateIfNecessary(() => {
+export const fetchAccounts = migrateIfNecessary(async () => {
     // TODO (zeffron 2023-12-28) Figure out how to perform the prepare once. We
     // need to do the preparation inside this function as it could throw an
     // error if the migrations haven't run, but we need to memoize the result
     // (with type information).
-    return database.query.accounts.findMany().prepare().all();
+    return await database.query.accounts.findMany().prepare().all();
 })
