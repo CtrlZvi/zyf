@@ -31,7 +31,16 @@ const AccountBase = z
         number: z.string().nullish(),
         // TODO (zeffron 2023-12-31) Figure out how to have a URL type for the
         // application and a string type for the database.
-        url: z.string().url().nullish(),
+        url: z
+            .string()
+            .url()
+            .nullish()
+            .or(
+                z
+                    .string()
+                    .max(0)
+                    .transform((url) => undefined),
+            ),
         icon: z.string().nullish(),
         initialBalance: z.number().int().nullish(),
         initialBalanceDate: z.date().max(new Date()).nullish(),
