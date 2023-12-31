@@ -48,3 +48,10 @@ export const fetchAccounts = migrateIfNecessary(async () => {
     // (with type information).
     return await database.query.accounts.findMany().prepare().all();
 })
+
+export const createAccount = migrateIfNecessary(async (account: accountSchema.CreateAccount) => {
+    // TODO (zeffron 2023-12-28) Figure out how to use a prepared statement for
+    // the insert. Potentially related to
+    // https://github.com/drizzle-team/drizzle-orm/issues/976.
+    return await database.insert(accountSchema.accounts).values(account);
+})
