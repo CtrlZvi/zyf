@@ -8,35 +8,33 @@
 // layout style, but it would probably be better if it were its own stylesheet.
 // That way we can benefit from cache behaviors _and_ exclude it on pages that
 // don't use the icons.
-import '@fortawesome/fontawesome-svg-core/styles.css';
-import type { Metadata } from 'next'
-import { StrictMode } from 'react';
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import type { Metadata } from "next";
+import { StrictMode } from "react";
 
-import Navigation from "@/components/navigation"
-import './globals.css'
+import Navigation from "@/components/navigation";
+import "./globals.css";
 
 export const metadata: Metadata = {
-    title: 'ZYF',
-}
+    title: "ZYF",
+};
 
 export default function RootLayout({
     children,
     sidebar,
 }: {
-    children: React.ReactNode,
-    sidebar: React.ReactNode
+    children: React.ReactNode;
+    sidebar: React.ReactNode;
 }) {
     return (
         <StrictMode>
             <html lang="en">
                 <body>
                     <Navigation />
-                    <main>
-                        {children}
-                    </main>
+                    <main>{children}</main>
                     {sidebar}
                 </body>
             </html>
         </StrictMode>
-    )
+    );
 }

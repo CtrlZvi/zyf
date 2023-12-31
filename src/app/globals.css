@@ -1,21 +1,21 @@
 :root {
-    color-scheme: light dark;
+  color-scheme: light dark;
 }
 
 body {
-    display: flex;
-    column-gap: 1rem;
+  display: flex;
+  column-gap: 1rem;
 
-    nav {
-        background-color: blue;
-    }
+  nav {
+    background-color: blue;
+  }
 
-    main {
-        flex: auto;
-        background-color: red;
-    }
+  main {
+    flex: auto;
+    background-color: red;
+  }
 
-    aside {
-        background-color: green;
-    }
+  aside {
+    background-color: green;
+  }
 }

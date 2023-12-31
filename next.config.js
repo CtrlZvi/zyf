@@ -3,6 +3,6 @@ const nextConfig = {
     experimental: {
         instrumentationHook: true,
     },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

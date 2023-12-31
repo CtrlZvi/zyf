@@ -1,21 +1,35 @@
-'use client';
+"use client";
 
 // Since we already added the CSS in the layout, as a workaround to an issue
 // where the CSS wasn't getting added, we prevent its addition here to avoid
 // duplicate styles and wasted bytes in transfer. Otherwise, this gets added as
 // an inline style.
-import { config } from '@fortawesome/fontawesome-svg-core';
+import { config } from "@fortawesome/fontawesome-svg-core";
 config.autoAddCss = false;
-import { faCreditCard, faWallet, faPiggyBank, faMoneyCheck, faHandHoldingDollar, faCashRegister, faUser } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
-import { useFormState } from 'react-dom';
-import Select, { components, defaultTheme, OptionProps } from 'react-select'
+import {
+    faCreditCard,
+    faWallet,
+    faPiggyBank,
+    faMoneyCheck,
+    faHandHoldingDollar,
+    faCashRegister,
+    faUser,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
+import { useFormState } from "react-dom";
+import Select, { components, defaultTheme, OptionProps } from "react-select";
 
-import { createAccount } from '@/lib/accounts';
-import { accountTypes, CreateAccountParseError } from '@/app/accounts/schema';
+import { createAccount } from "@/lib/accounts";
+import { accountTypes, CreateAccountParseError } from "@/app/accounts/schema";
 
-const AccountTypeOption = (props: OptionProps<{ readonly value: string; readonly label: string; readonly icon: typeof FontAwesomeIcon }>) => (
+const AccountTypeOption = (
+    props: OptionProps<{
+        readonly value: string;
+        readonly label: string;
+        readonly icon: typeof FontAwesomeIcon;
+    }>,
+) => (
     <div>
         <FontAwesomeIcon icon={faCreditCard} />
         <components.Option {...props} />
@@ -31,20 +45,45 @@ export interface AccountTypeOption {
 }
 
 export const accountTypeOptions: readonly AccountTypeOption[] = [
-    { value: 'cash', label: 'Cash', icon: <FontAwesomeIcon icon={faWallet} /> },
-    { value: 'savings', label: 'Savings', icon: <FontAwesomeIcon icon={faPiggyBank} /> },
-    { value: 'checking', label: 'Checking', icon: <FontAwesomeIcon icon={faMoneyCheck} /> },
-    { value: 'loan', label: 'Loan', icon: <FontAwesomeIcon icon={faHandHoldingDollar} /> },
-    { value: 'payment card', label: 'Payment Card', icon: <FontAwesomeIcon icon={faCreditCard} /> },
-    { value: 'merchant', label: 'Merchant', icon: <FontAwesomeIcon icon={faCashRegister} /> },
-    { value: 'person', label: 'Person', icon: <FontAwesomeIcon icon={faUser} /> },
+    { value: "cash", label: "Cash", icon: <FontAwesomeIcon icon={faWallet} /> },
+    {
+        value: "savings",
+        label: "Savings",
+        icon: <FontAwesomeIcon icon={faPiggyBank} />,
+    },
+    {
+        value: "checking",
+        label: "Checking",
+        icon: <FontAwesomeIcon icon={faMoneyCheck} />,
+    },
+    {
+        value: "loan",
+        label: "Loan",
+        icon: <FontAwesomeIcon icon={faHandHoldingDollar} />,
+    },
+    {
+        value: "payment card",
+        label: "Payment Card",
+        icon: <FontAwesomeIcon icon={faCreditCard} />,
+    },
+    {
+        value: "merchant",
+        label: "Merchant",
+        icon: <FontAwesomeIcon icon={faCashRegister} />,
+    },
+    {
+        value: "person",
+        label: "Person",
+        icon: <FontAwesomeIcon icon={faUser} />,
+    },
 ];
 
 const Option = (props: OptionProps<AccountTypeOption>) => {
     return (
         <div>
             <components.Option {...props}>
-                {props.data.icon}{props.data.label}
+                {props.data.icon}
+                {props.data.label}
             </components.Option>
         </div>
     );
@@ -54,12 +93,14 @@ export default function Form() {
     const initialState: CreateAccountParseError = {};
     const [state, dispatch] = useFormState(createAccount, initialState);
     console.debug(state);
-    const [type, setType] = useState(accountTypeOptions[0] as AccountTypeOption | null);
+    const [type, setType] = useState(
+        accountTypeOptions[0] as AccountTypeOption | null,
+    );
 
     return (
         <form action={dispatch}>
             <div>
-                <label htmlFor='name'>Name:</label>
+                <label htmlFor="name">Name:</label>
                 <input
                     id="name"
                     name="name"
@@ -71,13 +112,11 @@ export default function Form() {
             </div>
             <div id="name-error" aria-live="polite" aria-atomic="true">
                 {state.errors?.name?.map((error: string) => (
-                    <p key={error}>
-                        {error}
-                    </p>
+                    <p key={error}>{error}</p>
                 )) ?? <></>}
             </div>
             <div>
-                <label htmlFor='type'>Type:</label>
+                <label htmlFor="type">Type:</label>
                 {
                     // FIXME (zeffron 2023-12-18) The default styles for the Select
                     // component do not adapt to dark mode.
@@ -104,9 +143,7 @@ export default function Form() {
             </div>
             <div id="type-error" aria-live="polite" aria-atomic="true">
                 {state.errors?.type?.map((error: string) => (
-                    <p key={error}>
-                        {error}
-                    </p>
+                    <p key={error}>{error}</p>
                 )) ?? <></>}
             </div>
             {
@@ -116,18 +153,28 @@ export default function Form() {
                 // is not doing exactly what I want, but I'm also not 100% what
                 // the differences are, so it's had to code.
             }
-            <div role="radiogroup" aria-errormessage="internal-error" aria-invalid={state.errors?.internal !== undefined}>
-                <label htmlFor='internal'>Internal</label>
+            <div
+                role="radiogroup"
+                aria-errormessage="internal-error"
+                aria-invalid={state.errors?.internal !== undefined}
+            >
+                <label htmlFor="internal">Internal</label>
                 <input
                     type="radio"
                     id="internal"
                     name="internal"
                     value="true"
                     aria-live="polite"
-                    disabled={["person", "merchant"].includes(type?.value ?? "")}
-                    defaultChecked={!["person", "merchant", "cash"].includes(type?.value ?? "")}
+                    disabled={["person", "merchant"].includes(
+                        type?.value ?? "",
+                    )}
+                    defaultChecked={
+                        !["person", "merchant", "cash"].includes(
+                            type?.value ?? "",
+                        )
+                    }
                 ></input>
-                <label htmlFor='external'>External</label>
+                <label htmlFor="external">External</label>
                 {
                     // FIXME (zeffron) 2023-12-30 React complains that this
                     // switches from a controlled to uncontrolled component (or
@@ -141,20 +188,31 @@ export default function Form() {
                     name="internal"
                     value="false"
                     aria-live="polite"
-                    disabled={["person", "merchant"].includes(type?.value ?? "")}
-                    defaultChecked={["person", "merchant", "cash"].includes(type?.value ?? "")}
-                    checked={["person", "merchant"].includes(type?.value ?? "") ? true : undefined}
+                    disabled={["person", "merchant"].includes(
+                        type?.value ?? "",
+                    )}
+                    defaultChecked={["person", "merchant", "cash"].includes(
+                        type?.value ?? "",
+                    )}
+                    checked={
+                        ["person", "merchant"].includes(type?.value ?? "")
+                            ? true
+                            : undefined
+                    }
                 ></input>
             </div>
-            <div id="internal-error" aria-live="polite" aria-atomic="true" role="desc">
+            <div
+                id="internal-error"
+                aria-live="polite"
+                aria-atomic="true"
+                role="desc"
+            >
                 {state.errors?.internal?.map((error: string) => (
-                    <p key={error}>
-                        {error}
-                    </p>
+                    <p key={error}>{error}</p>
                 )) ?? <></>}
             </div>
             <div>
-                <label htmlFor='url'>URL:</label>
+                <label htmlFor="url">URL:</label>
                 <input
                     id="url"
                     name="url"
@@ -166,14 +224,10 @@ export default function Form() {
             </div>
             <div id="url-error" aria-live="polite" aria-atomic="true">
                 {state.errors?.url?.map((error: string) => (
-                    <p key={error}>
-                        {error}
-                    </p>
+                    <p key={error}>{error}</p>
                 )) ?? <></>}
             </div>
-            <button type="submit">
-                Create account
-            </button>
-        </form >
-    )
+            <button type="submit">Create account</button>
+        </form>
+    );
 }

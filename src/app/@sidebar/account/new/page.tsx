@@ -1,7 +1,9 @@
-import Form from './form';
+import Form from "./form";
 
 export default function Sidebar() {
     return (
-        <aside><Form></Form></aside>
-    )
+        <aside>
+            <Form></Form>
+        </aside>
+    );
 }
