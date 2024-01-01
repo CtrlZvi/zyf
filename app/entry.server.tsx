@@ -12,6 +12,12 @@ import { RemixServer } from "@remix-run/react";
 import isbot from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 
+import { performMigrations } from "~/lib/database";
+
+console.info("Migrating database...");
+performMigrations();
+console.info("Migration complete...");
+
 const ABORT_DELAY = 5_000;
 
 export default function handleRequest(

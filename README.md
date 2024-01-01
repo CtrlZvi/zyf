@@ -37,6 +37,12 @@ Make sure to deploy the output of `remix build`
 -   `build/`
 -   `public/build/`
 
+## Updating the database schema
+
+To update the database schema, first ensure that the new schema is recorded in
+a schema.ts file. Then run `npx drizzle-kit generate:sqlite`. Lastly, restart
+the Next.js server as migrations only run on cold start.
+
 ## Where does the name come from?
 
 I decided I wanted to spend a year focusing on my finance's and putting myself
