@@ -1,9 +1,7 @@
 {
   "name": "zyf-finance",
   "private": true,
-  "sideEffects": [
-    "app/root.server.tsx"
-  ],
+  "sideEffects": false,
   "type": "module",
   "scripts": {
     "build": "remix build",
