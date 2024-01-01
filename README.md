@@ -1,4 +1,5 @@
 # zyf
+
 A personal financial tracker with an emphasis on anticipatory cashflow
 
 ## Development
@@ -33,8 +34,8 @@ If you're familiar with deploying node applications, the built-in Remix app serv
 
 Make sure to deploy the output of `remix build`
 
-- `build/`
-- `public/build/`
+-   `build/`
+-   `public/build/`
 
 ## Where does the name come from?
 
@@ -57,9 +58,10 @@ Frugality, which immediately became shortened to ZYF, pronounced zif (IPA:zɪɸ)
 I decided that made for a much better name than MIMO as it was less likely to
 collide[^collide] and was a little bit more fun to say.
 
-[^collide]: Despite being less likely to collide, it appears that there is
-package name collision. This is resolved by appending "-finance" to the package
-name, though the project is still just ZYF.
+[^collide]:
+    Despite being less likely to collide, it appears that there is
+    package name collision. This is resolved by appending "-finance" to the package
+    name, though the project is still just ZYF.
 
 [garbage in, garbage out]: https://en.wikipedia.org/wiki/Garbage_in%2C_garbage_out
 [mimodactylus]: https://en.wikipedia.org/wiki/Mimodactylus
