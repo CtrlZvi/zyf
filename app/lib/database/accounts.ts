@@ -5,7 +5,7 @@ import { database } from "~/lib/database";
 import {
     Account,
     CreateAccountData,
-    accountsTable as accounts,
+    accounts,
     accountDatabaseReadParser,
     createAccountDatabaseParser,
 } from "~/routes/accounts/schema";

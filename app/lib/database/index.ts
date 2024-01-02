@@ -2,7 +2,7 @@ import Database, { SqliteError } from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 
-import { accountsTable as accounts } from "~/routes/accounts/schema";
+import { accounts } from "~/routes/accounts/schema";
 
 export const database = drizzle(new Database("zyf.db"), {
     schema: { accounts },

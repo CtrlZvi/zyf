@@ -141,7 +141,7 @@ export const createAccountDatabaseParser = account
 //     >
 // >;
 
-export const accountsTable = sqliteTable(
+export const accounts = sqliteTable(
     "accounts",
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
