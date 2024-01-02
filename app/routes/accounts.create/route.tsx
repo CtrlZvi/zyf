@@ -22,7 +22,6 @@ export async function action({ request }: ActionFunctionArgs) {
     );
 
     if (!parseResults.success) {
-        console.log(parseResults.error);
         return json(parseResults.error.flatten().fieldErrors);
     }
 
@@ -146,34 +145,14 @@ export default function CreateAccount() {
                     )) ?? <></>}
                 </div>
                 {
-                    // TODO (zeffron 2023-12-30) Investigate using a <fieldset>
-                    // instead of a <div> to group the buttons.
-                    // TODO (zeffron 2023-12-30) The checked status and defaulting
-                    // is not doing exactly what I want, but I'm also not 100% what
-                    // the differences are, so it's had to code.
+                    // TODO (zeffron 2023-12-30) The checked status and
+                    // defaulting is not working corretly. Automatically
+                    // setting the check based on state doesn't seem to be
+                    // propagated into the form data so reality doesn't match
+                    // the UX.
                 }
-                <div
-                    role="radiogroup"
-                    aria-errormessage="internal-error"
-                    aria-invalid={errors?.internal !== undefined}
-                >
-                    <label htmlFor="internal">Internal</label>
-                    <input
-                        type="radio"
-                        id="internal"
-                        name="internal"
-                        value="true"
-                        aria-live="polite"
-                        disabled={["person", "merchant"].includes(
-                            type?.value ?? "",
-                        )}
-                        defaultChecked={
-                            !["person", "merchant", "cash"].includes(
-                                type?.value ?? "",
-                            )
-                        }
-                    ></input>
-                    <label htmlFor="external">External</label>
+                <div>
+                    <label htmlFor="external">External?</label>
                     {
                         // FIXME (zeffron) 2023-12-30 React complains that this
                         // switches from a controlled to uncontrolled component (or
@@ -182,11 +161,13 @@ export default function CreateAccount() {
                         // above, anyway.
                     }
                     <input
-                        type="radio"
                         id="external"
-                        name="internal"
-                        value="false"
+                        name="external"
+                        type="checkbox"
+                        value="true"
                         aria-live="polite"
+                        aria-describedby="external-error"
+                        aria-invalid={errors?.external !== undefined}
                         disabled={["person", "merchant"].includes(
                             type?.value ?? "",
                         )}
@@ -198,10 +179,10 @@ export default function CreateAccount() {
                                 ? true
                                 : undefined
                         }
-                    ></input>
+                    />
                 </div>
-                <div id="internal-error" aria-live="polite" aria-atomic="true">
-                    {errors?.internal?.map((error: string) => (
+                <div id="external-error" aria-live="polite" aria-atomic="true">
+                    {errors?.external?.map((error: string) => (
                         <p key={error}>{error}</p>
                     )) ?? <></>}
                 </div>

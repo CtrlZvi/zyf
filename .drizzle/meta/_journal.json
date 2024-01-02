@@ -8,6 +8,13 @@
       "when": 1704145845727,
       "tag": "0000_worthless_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1704187671618,
+      "tag": "0001_secret_tyrannus",
+      "breakpoints": true
     }
   ]
 }

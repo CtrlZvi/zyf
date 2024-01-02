@@ -23,7 +23,7 @@ const account = z
         id: z.number().int(),
         name: z.string().min(1),
         type: z.enum(accountTypes),
-        internal: z.boolean(),
+        external: z.boolean(),
         url: zodURL.optional(),
         icon: z.string().min(1).optional(),
     })
@@ -104,7 +104,7 @@ export const accountFromJSONParser = account.extend({
 export const createAccountFormParser = account
     .omit({ id: true, icon: true })
     .extend({
-        internal: z.coerce.boolean(),
+        external: z.coerce.boolean(),
         url: z
             .string()
             .url()
@@ -147,7 +147,7 @@ export const accountsTable = sqliteTable(
         id: integer("id").primaryKey({ autoIncrement: true }),
         name: text("name").notNull(),
         type: text("type", { enum: accountTypes }).notNull(),
-        internal: integer("internal", { mode: "boolean" }).notNull(),
+        external: integer("external", { mode: "boolean" }).notNull(),
         url: text("url"),
         icon: text("icon"),
     },
