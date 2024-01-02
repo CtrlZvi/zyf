@@ -4,12 +4,12 @@ import {
     Links,
     LiveReload,
     Meta,
+    NavLink,
     Outlet,
     Scripts,
     ScrollRestoration,
 } from "@remix-run/react";
 
-import Navigation from "~/components/navigation";
 import styles from "./root.css";
 
 export const links: LinksFunction = () => [
@@ -30,7 +30,11 @@ export default function App() {
                 <Links />
             </head>
             <body>
-                <Navigation />
+                <nav aria-label="Site navigation">
+                    <NavLink to="/accounts" prefetch="intent">
+                        Accounts
+                    </NavLink>
+                </nav>
                 <Outlet />
                 <ScrollRestoration />
                 <Scripts />
