@@ -1,0 +1,21 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  display: flex;
+  column-gap: 1rem;
+
+  & nav {
+    background-color: blue;
+  }
+
+  & main {
+    flex: auto;
+    background-color: red;
+  }
+
+  & aside {
+    background-color: green;
+  }
+}
