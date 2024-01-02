@@ -22,9 +22,11 @@ export const fetchAccounts = async (): Promise<Account[]> =>
 // when https://github.com/drizzle-team/drizzle-orm/issues/976 is fixed.
 // const createAccount = database.insert(accounts).values(sql.placeholder("account")).prepare();
 export const createAccount = async (account: CreateAccountData) => {
-    if (account.url !== undefined) {
+    const data = createAccountDatabaseParser.parse(account);
+
+    if (data.url !== undefined) {
         try {
-            const url = new URL(account.url);
+            const url = new URL(data.url);
             const response = await fetch(
                 `https://icons.duckduckgo.com/ip3/${url.hostname}.ico`,
             );
@@ -33,9 +35,9 @@ export const createAccount = async (account: CreateAccountData) => {
                 // convention as the account name is not guaranteed to be path
                 // safe.
                 await mkdir("public/account-icons", { recursive: true });
-                account.icon = `/account-icons/${randomUUID()}`;
+                data.icon = `/account-icons/${randomUUID()}`;
                 await writeFile(
-                    `public${account.icon}`,
+                    `public${data.icon}`,
                     new DataView(await (await response.blob()).arrayBuffer()),
                 );
             }
@@ -43,8 +45,5 @@ export const createAccount = async (account: CreateAccountData) => {
             console.warn(`Could not get favicon for ${account.name}: ${error}`);
         }
     }
-    database
-        .insert(accounts)
-        .values(createAccountDatabaseParser.parse(account))
-        .execute();
+    database.insert(accounts).values(data).execute();
 };
