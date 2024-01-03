@@ -10,7 +10,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
-import Select, { OptionProps, components } from "react-select";
+import Select, {
+    OptionProps,
+    SingleValueProps,
+    components,
+} from "react-select";
 import { useState } from "react";
 
 import { createAccountFormParser } from "~/routes/accounts/schema";
@@ -86,6 +90,16 @@ const Option = (props: OptionProps<AccountTypeOption>) => {
     );
 };
 
+const SingleValue = ({
+    children,
+    ...props
+}: SingleValueProps<AccountTypeOption>) => (
+    <components.SingleValue {...props}>
+        {props.data.icon}
+        {children}
+    </components.SingleValue>
+);
+
 export default function CreateAccount() {
     const errors = useActionData<typeof action>();
     const [type, setType] = useState(
@@ -128,7 +142,7 @@ export default function CreateAccount() {
                         aria-errormessage="type-error"
                         aria-live="polite"
                         options={accountTypeOptions}
-                        components={{ Option }}
+                        components={{ Option, SingleValue }}
                         defaultValue={accountTypeOptions[0]}
                         onChange={(value) => setType(value)}
                         isMulti={
