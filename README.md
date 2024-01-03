@@ -62,12 +62,13 @@ To make a year where I was going to be spending less, eating out less, etc.
 more fun for me, I decided to give it a (relatively) fun name: Zvi's Year of
 Frugality, which immediately became shortened to ZYF, pronounced zif (IPA:zɪɸ).
 I decided that made for a much better name than MIMO as it was less likely to
-collide[^collide] and was a little bit more fun to say.
+collide[^collide] and was a little bit more fun to say. Finally, I decided to
+make it a name and not an acronym, so the end result is Zyf.
 
 [^collide]:
     Despite being less likely to collide, it appears that there is
     package name collision. This is resolved by appending "-finance" to the package
-    name, though the project is still just ZYF.
+    name, though the project is still just Zyf.
 
 [garbage in, garbage out]: https://en.wikipedia.org/wiki/Garbage_in%2C_garbage_out
 [mimodactylus]: https://en.wikipedia.org/wiki/Mimodactylus
