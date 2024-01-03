@@ -19,15 +19,8 @@
     {
       "idx": 2,
       "version": "5",
-      "when": 1704190914953,
-      "tag": "0002_foamy_pride",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1704268448753,
-      "tag": "0003_premium_valkyrie",
+      "when": 1704272115264,
+      "tag": "0002_deep_maddog",
       "breakpoints": true
     }
   ]
