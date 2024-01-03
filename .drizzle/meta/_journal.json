@@ -15,6 +15,20 @@
       "when": 1704187671618,
       "tag": "0001_secret_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1704190914953,
+      "tag": "0002_foamy_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1704268448753,
+      "tag": "0003_premium_valkyrie",
+      "breakpoints": true
     }
   ]
 }

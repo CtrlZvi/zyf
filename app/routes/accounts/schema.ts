@@ -1,4 +1,5 @@
 import {
+    index,
     integer,
     sqliteTable,
     text,
@@ -26,6 +27,7 @@ const account = z
         external: z.boolean(),
         url: zodURL.optional(),
         icon: z.string().min(1).optional(),
+        externalID: z.string().min(1).optional(),
     })
     .strict();
 export type Account = z.infer<typeof account>;
@@ -150,8 +152,10 @@ export const accounts = sqliteTable(
         external: integer("external", { mode: "boolean" }).notNull(),
         url: text("url"),
         icon: text("icon"),
+        externalID: text("external_id"),
     },
     (table) => ({
+        externalIDIndex: index("external_id_idx").on(table.externalID),
         uniqueHumanIdentifier: uniqueIndex("human_identifier_idx").on(
             table.name,
             table.type,

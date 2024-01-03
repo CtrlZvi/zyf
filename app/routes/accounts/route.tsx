@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
 
+import AccountIcon from "~/components/account-icon";
 import { fetchAccounts } from "~/lib/database/accounts";
 
 import styles from "./route.module.css";
@@ -64,19 +65,7 @@ export default function Accounts() {
                         {accounts.map((account) => (
                             <tr key={account.id}>
                                 <td>
-                                    {account?.icon ? (
-                                        <img
-                                            src={account.icon}
-                                            alt={`${account.name} icon`}
-                                            // FIXME (zeffron 2023-12-31) We want the icon to be based on the
-                                            // text size. This correctly handles positioning and height, but
-                                            // not preserving the aspect ratio. We also don't want to depend on
-                                            // Font Awesome styles.
-                                            className={styles.icon}
-                                        />
-                                    ) : (
-                                        <></>
-                                    )}
+                                    <AccountIcon account={account} />
                                 </td>
                                 <td>{account.name}</td>
                                 <td>{accountTypeIcon(account)}</td>

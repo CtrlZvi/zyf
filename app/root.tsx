@@ -34,6 +34,9 @@ export default function App() {
                     <NavLink to="/accounts" prefetch="intent">
                         Accounts
                     </NavLink>
+                    <NavLink to="/import" prefetch="intent">
+                        Import
+                    </NavLink>
                 </nav>
                 <Outlet />
                 <ScrollRestoration />

@@ -1,5 +1,6 @@
-import { mkdir, writeFile } from "fs/promises";
 import { randomUUID } from "crypto";
+import { eq, sql } from "drizzle-orm";
+import { mkdir, writeFile } from "fs/promises";
 
 import { database } from "~/lib/database";
 import {
@@ -16,6 +17,31 @@ export const fetchAccounts = async (): Promise<Account[]> =>
     fetchAccountsStatement
         .all()
         .map((account) => accountDatabaseReadParser.parse(account));
+
+// TODO (zeffron 2024-01-01) Make this migrate on demand in development.
+const fetchInternalAccountsStatement = database.query.accounts
+    .findMany({
+        where: eq(accounts.external, false),
+    })
+    .prepare();
+export const fetchInternalAccounts = async (): Promise<Account[]> =>
+    fetchInternalAccountsStatement
+        .all()
+        .map((account) => accountDatabaseReadParser.parse(account));
+
+// TODO (zeffron 2024-01-02) Make this migrate on demand in development.
+const fetchAccountByExternalIDStatement = database.query.accounts
+    .findFirst({
+        where: eq(accounts.externalID, sql.placeholder("externalID")),
+    })
+    .prepare();
+// TODO (zeffron 2024-01-03) Error if there is more than one matching account.
+export const fetchAccountByExternalID = async (
+    externalID: string,
+): Promise<Account> =>
+    accountDatabaseReadParser.parse(
+        fetchAccountByExternalIDStatement.get({ externalID: externalID }),
+    );
 
 // TODO (zeffron 2024-01-01) Make this migrate on demand in development.
 // TODO (zeffron 2024-01-01) Convert to a prepared statement with a placeholder

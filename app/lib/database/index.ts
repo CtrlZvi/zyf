@@ -3,9 +3,21 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 
 import { accounts } from "~/routes/accounts/schema";
+import {
+    entries,
+    entryRelations,
+    transactionRelations,
+    transactions,
+} from "~/routes/transactions/schema";
 
 export const database = drizzle(new Database("zyf.db"), {
-    schema: { accounts },
+    schema: {
+        accounts,
+        entries,
+        entryRelations,
+        transactionRelations,
+        transactions,
+    },
     logger: true,
 });
 
