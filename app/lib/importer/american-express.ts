@@ -2,8 +2,8 @@ import { find, textContent } from "domutils";
 import { ElementType, parseDocument } from "htmlparser2";
 import transit from "transit-immutable-js";
 
-// Updates the user session so the cookie stays valid.
-const updateUserSession = async ({ cookie }: { cookie: string }) => {
+// Updates the user session so the cookies stay valid.
+const updateUserSession = async ({ cookies }: { cookies: string }) => {
     console.log("Updating the user token...");
 
     const session = await fetch(
@@ -12,7 +12,7 @@ const updateUserSession = async ({ cookie }: { cookie: string }) => {
             method: "POST",
             body: "{}",
             headers: {
-                Cookie: cookie,
+                Cookie: cookies,
             },
         },
     );
@@ -25,6 +25,8 @@ const updateUserSession = async ({ cookie }: { cookie: string }) => {
         sessionExpiry,
         tokenExpiry,
     }: { sessionExpiry: string; tokenExpiry: string } = json;
+    // TODO (zeffron 2024-01-02) Use the server timestamp to ensure things are
+    // properly synced.
     const expiresAt = new Date(
         sessionExpiry < tokenExpiry ? sessionExpiry : tokenExpiry,
     );
@@ -33,30 +35,29 @@ const updateUserSession = async ({ cookie }: { cookie: string }) => {
     setTimeout(
         updateUserSession,
         expiresAt.getTime() - 60 * 1000 - Date.now(),
-        { cookie },
+        { cookies },
     );
 };
 
-export default async function importer({ cookie }: { cookie: string }) {}
+export default async function importer({ cookies }: { cookies: string }) {}
 
-export async function fetchAccounts({ cookie }: { cookie: string }) {
+export async function fetchAccounts({ cookies }: { cookies: string }) {
     // First thing we do is set up a background refresh of the token so it
     // doesn't expire.
     // TODO (zeffron 2024-01-02) Make this refresh last only as long as the
     // import.
-    updateUserSession({ cookie });
+    updateUserSession({ cookies });
 
-    // Best way to extract the cookie is to copy cURL from ReadCustomerProductDetails.v1 request
-    // First, we need to get the initial data state from American Express. That
-    // is served in an inline script in the HTML that is returned from
-    // https://global.americanexpress.com/dashboard. So first we fetch it and
-    // parse it to extract the initial state.
-    // cURL: curl 'https://global.americanexpress.com/dashboard' --compressed -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: en-US,en;q=0.5' -H 'Accept-Encoding: gzip, deflate, br' -H 'DNT: 1' -H 'Connection: keep-alive' -H 'Cookie: [object Object]' -H 'Upgrade-Insecure-Requests: 1' -H 'Sec-Fetch-Dest: document' -H 'Sec-Fetch-Mode: navigate' -H 'Sec-Fetch-Site: same-site' -H 'Sec-Fetch-User: ?1' -H 'Sec-GPC: 1' -H 'TE: trailers'
+    // Best way to extract the cookies is to copy it from the
+    // UpdateUserSession.v1 request.
+    // The accounts are only together as a complete set in the initial data
+    // state which is served as an inline script in the HTML that is returned
+    // from https://global.americanexpress.com/dashboard.
     const dashboard = await fetch(
         "https://global.americanexpress.com/dashboard",
         {
             headers: {
-                Cookie: cookie,
+                Cookie: cookies,
             },
         },
     );
@@ -66,7 +67,7 @@ export async function fetchAccounts({ cookie }: { cookie: string }) {
     }
     if (dashboard.url !== "https://global.americanexpress.com/dashboard") {
         // TODO (zeffron 2024-01-02) Appropriately handle the error and
-        // indicate the cookie is not valid.
+        // indicate the cookies are not valid.
         return;
     }
 
@@ -79,13 +80,14 @@ export async function fetchAccounts({ cookie }: { cookie: string }) {
         true,
         1,
     );
+    const serializedState = textContent(scripts[0])
+        .match(/^\s*window\.__INITIAL_STATE__\s*=\s*"(.*)";\s*$/m)[1]
+        .replaceAll('\\"', '"')
+        .replaceAll("\\\\", "\\");
 
-    const initialState = transit.fromJSON(
-        textContent(scripts[0])
-            .match(/^\s*window\.__INITIAL_STATE__\s*=\s*"(.*)";\s*$/m)[1]
-            .replaceAll('\\"', '"')
-            .replaceAll("\\\\", "\\"),
-    );
+    // We discovered via reverse engineering that the state is serialized using
+    // transit and Immutable.js.
+    const initialState = transit.fromJSON(serializedState);
     const accounts = [
         ...initialState
             .get("modules")
@@ -95,5 +97,59 @@ export async function fetchAccounts({ cookie }: { cookie: string }) {
             .get("types")
             .values(),
     ].flat();
+    const initialDetails = initialState
+        .get("modules")
+        ?.get("axp-myca-root")
+        .get("products")
+        .get("details")
+        .get("types");
+
+    // Some accounts have their details in the initial state, so we extract it
+    // from there.
+    for (const account of accounts) {
+        const accountDetails = initialDetails.get(account.type)?.productsList[
+            account.opaqueAccountId
+        ];
+        if (accountDetails === undefined) {
+            continue;
+        }
+        account.name = accountDetails.product.description;
+        account.art = accountDetails.product.large_card_art;
+    }
+
+    // Other accounts need their details to be fetched. These details differ in
+    // format from the ones in the initial state.
+    const detailsResponse = await fetch(
+        "https://functions.americanexpress.com/ReadCustomerProductDetails.v1",
+        {
+            method: "POST",
+            body: JSON.stringify(
+                accounts.reduce((accounts, account) => {
+                    if (!Object.hasOwn(accounts, account.type)) {
+                        accounts[account.type] = { accountIds: [] };
+                    }
+                    accounts[account.type].accountIds.push(
+                        account.opaqueAccountId,
+                    );
+                    return accounts;
+                }, {}),
+            ),
+            headers: {
+                Cookie: cookies,
+            },
+        },
+    );
+    // TODO (zeffron 2024-01-03) Check for failure and handle the error.
+    const details = await detailsResponse.json();
+    for (const account of accounts) {
+        const accountDetails = details.results[account.type]?.find(
+            (details) => details.opaqueAccountId === account.opaqueAccountId,
+        );
+        if (accountDetails === undefined) {
+            continue;
+        }
+        account.name = accountDetails.productDisplayName;
+        account.art = accountDetails.digitalAssetUrl.large;
+    }
     return accounts;
 }

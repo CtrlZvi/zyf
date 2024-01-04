@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
     faCreditCard,
     faWallet,
@@ -8,6 +9,7 @@ import {
     faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { mkdir, writeFile } from "fs/promises";
 import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import Select, {
@@ -17,7 +19,10 @@ import Select, {
 } from "react-select";
 import { useState } from "react";
 
-import { createAccountFormParser } from "~/routes/accounts/schema";
+import {
+    CreateAccountData,
+    createAccountFormParser,
+} from "~/routes/accounts/schema";
 import { createAccount } from "~/lib/database/accounts";
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -29,9 +34,33 @@ export async function action({ request }: ActionFunctionArgs) {
         return json(parseResults.error.flatten().fieldErrors);
     }
 
+    const data: CreateAccountData = parseResults.data;
+
+    if (data.url !== undefined) {
+        try {
+            const url = new URL(data.url);
+            const response = await fetch(
+                `https://icons.duckduckgo.com/ip3/${url.hostname}.ico`,
+            );
+            if (response.ok) {
+                // FIXME (zeffron 2023-12-31) We need a better file name
+                // convention as the account name is not guaranteed to be path
+                // safe.
+                await mkdir("public/account-icons", { recursive: true });
+                data.icon = `/account-icons/${randomUUID()}`;
+                await writeFile(
+                    `public${data.icon}`,
+                    new DataView(await (await response.blob()).arrayBuffer()),
+                );
+            }
+        } catch (error) {
+            console.warn(`Could not get favicon for ${data.name}: ${error}`);
+        }
+    }
+
     // TODO (zeffron 2024-01-01) This can throw (for example, if the unique
     // constraint is violated), and we need to handle that appropriately.
-    await createAccount(parseResults.data);
+    await createAccount(data);
 
     // FIXME (zeffron 2024-01-01) Need to submit the data to the database.
     return redirect("/accounts");
@@ -79,16 +108,14 @@ export const accountTypeOptions: readonly AccountTypeOption[] = [
     },
 ];
 
-const Option = (props: OptionProps<AccountTypeOption>) => {
-    return (
-        <div>
-            <components.Option {...props}>
-                {props.data.icon}
-                {props.data.label}
-            </components.Option>
-        </div>
-    );
-};
+const Option = (props: OptionProps<AccountTypeOption>) => (
+    <div>
+        <components.Option {...props}>
+            {props.data.icon}
+            {props.data.label}
+        </components.Option>
+    </div>
+);
 
 const SingleValue = ({
     children,

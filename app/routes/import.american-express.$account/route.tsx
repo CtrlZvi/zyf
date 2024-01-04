@@ -13,30 +13,30 @@ import {
 } from "~/lib/database/accounts";
 import { Account, accountFromJSONParser } from "~/routes/accounts/schema";
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-    console.log(params.account);
+export async function loader({ params }: LoaderFunctionArgs) {
+    // TODO (zeffron 2024-01-03) This needs to exclude accounts that already
+    // have an external id.
     const internalAccounts = fetchInternalAccounts();
     try {
         // TODO (zeffron 2024-01-03) Cancel the fetch of the internal accounts
         // if we find a matching account.
         return json({
-            accounts: await fetchAccountByExternalID(params.account),
+            accounts: [await fetchAccountByExternalID(params.account)],
+            matched: true,
         });
     } catch {
-        return json({ accounts: await internalAccounts });
+        return json({ accounts: await internalAccounts, matched: false });
     }
-};
+}
 
 const Option = (
     props: OptionProps<{ value: number; label: string; account: Account }>,
-) => {
-    return (
-        <components.Option {...props}>
-            <AccountIcon account={props.data.account} />
-            {props.data.account.name}
-        </components.Option>
-    );
-};
+) => (
+    <components.Option {...props}>
+        <AccountIcon account={props.data.account} />
+        {props.data.account.name}
+    </components.Option>
+);
 
 const SingleValue = ({
     children,
@@ -49,7 +49,8 @@ const SingleValue = ({
 );
 
 export default function Import() {
-    const accounts = useLoaderData<typeof loader>().accounts.map((account) =>
+    const { accounts: accountsJSON, matched } = useLoaderData<typeof loader>();
+    const accounts = accountsJSON.map((account) =>
         accountFromJSONParser.parse(account),
     );
     // TODO (zeffron 2024-01-03) Add an option that will automatically create a
@@ -71,10 +72,13 @@ export default function Import() {
                 // similar to what's necessary for dark mode responsiveness.
             }
             <Select
-                id="account"
-                name="account"
+                id="zyfAccount"
+                name="zyfAccount"
                 options={options}
                 components={{ Option, SingleValue }}
+                placeholder="Create an account"
+                defaultValue={matched ? options[0] : undefined}
+                isDisabled={matched}
             ></Select>
             <button type="submit">Import</button>
         </div>

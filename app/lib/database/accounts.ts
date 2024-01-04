@@ -1,6 +1,4 @@
-import { randomUUID } from "crypto";
 import { eq, sql } from "drizzle-orm";
-import { mkdir, writeFile } from "fs/promises";
 
 import { database } from "~/lib/database";
 import {
@@ -48,28 +46,13 @@ export const fetchAccountByExternalID = async (
 // when https://github.com/drizzle-team/drizzle-orm/issues/976 is fixed.
 // const createAccount = database.insert(accounts).values(sql.placeholder("account")).prepare();
 export const createAccount = async (account: CreateAccountData) => {
+    // TODO (zeffron 2024-01-03) Figure out a better way to handle errors.
+    const parseResults = createAccountDatabaseParser.safeParse(account);
+    if (!parseResults.success) {
+        console.error(parseResults.error.flatten().fieldErrors);
+    }
+
     const data = createAccountDatabaseParser.parse(account);
 
-    if (data.url !== undefined) {
-        try {
-            const url = new URL(data.url);
-            const response = await fetch(
-                `https://icons.duckduckgo.com/ip3/${url.hostname}.ico`,
-            );
-            if (response.ok) {
-                // FIXME (zeffron 2023-12-31) We need a better file name
-                // convention as the account name is not guaranteed to be path
-                // safe.
-                await mkdir("public/account-icons", { recursive: true });
-                data.icon = `/account-icons/${randomUUID()}`;
-                await writeFile(
-                    `public${data.icon}`,
-                    new DataView(await (await response.blob()).arrayBuffer()),
-                );
-            }
-        } catch (error) {
-            console.warn(`Could not get favicon for ${account.name}: ${error}`);
-        }
-    }
     database.insert(accounts).values(data).execute();
 };

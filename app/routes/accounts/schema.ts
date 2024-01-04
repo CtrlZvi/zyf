@@ -120,7 +120,6 @@ export const createAccountFormParser = account
             .optional(),
     })
     .strict();
-export type CreateAccountData = z.infer<typeof createAccountFormParser>;
 
 export const createAccountDatabaseParser = account
     .omit({ id: true })
@@ -128,20 +127,7 @@ export const createAccountDatabaseParser = account
         url: zodURL.transform((url) => url.toString()).optional(),
     })
     .strict();
-// TODO (zeffron 2024-01-01) Linters are causing grief over
-// ValidateCreateAccountData being unused, so this is commented out for now and
-// can be uncommented when making changes to perform validation until I can
-// figure out how to make the linters happy. ESLint inline comments don't seem
-// to do it, and ts seems to also be sad and I don't think it respects the
-// eslint inline comments.
-// type TypesAreEqual<T, U> = T extends U ? (U extends T ? true : false) : false;
-// type StaticAssert<T extends true> = T;
-// type ValidateCreateAccountData = StaticAssert<
-//     TypesAreEqual<
-//         z.output<typeof createAccountFormParser>,
-//         z.input<typeof createAccountDatabaseParser>
-//     >
-// >;
+export type CreateAccountData = z.input<typeof createAccountDatabaseParser>;
 
 export const accounts = sqliteTable(
     "accounts",
