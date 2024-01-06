@@ -54,5 +54,7 @@ export const createAccount = async (account: CreateAccountData) => {
 
     const data = createAccountDatabaseParser.parse(account);
 
+    // TODO (zeffron 2024-01-03) This needs to return the account that was
+    // created.
     database.insert(accounts).values(data).execute();
 };

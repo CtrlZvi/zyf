@@ -1,6 +1,32 @@
 import { find, textContent } from "domutils";
 import { ElementType, parseDocument } from "htmlparser2";
+import type { Map } from "immutable";
 import transit from "transit-immutable-js";
+import z from "zod";
+
+type AccountTypes =
+    | "CARD_PRODUCT"
+    | "AEXP_INVEST_WEALTH_ACCOUNT"
+    | "AEXP_PERSONAL_CHECKING_ACCOUNT"
+    | "AEXP_PERSONAL_SAVING_ACCOUNT"
+    | "AEXP_BUSINESS_CHECKING_ACCOUNT"
+    | "AEXP_KABBAGE_PAYMENTS"
+    | "AEXP_KABBAGE_LOC"
+    | "AEXP_KABBAGE_BCA"
+    | "AEXP_CRYPTO_ACCOUNT"
+    | "AEXP_KABBAGE_ACCOUNT"
+    | "AEXP_KABBAGE_INSIGHTS"
+    | "AEXP_CROSS_BORDER_PAYMENTS";
+
+type AmericanExpressAccount = {
+    type: AccountTypes;
+    opaqueAccountId: string;
+    isoCountryCode: string;
+    status: string;
+    role: string;
+    name?: string;
+    art?: string;
+};
 
 // Updates the user session so the cookies stay valid.
 const updateUserSession = async ({ cookies }: { cookies: string }) => {
@@ -39,9 +65,22 @@ const updateUserSession = async ({ cookies }: { cookies: string }) => {
     );
 };
 
-export default async function importer({ cookies }: { cookies: string }) {}
+export default async function importTransactions({
+    cookies,
+    americanExpressAccount,
+}: {
+    cookies: string;
+    americanExpressAccount: AmericanExpressAccount;
+}) {
+    // Importing uses different URLs (and data types) for credit cards and bank
+    // accounts.
+}
 
-export async function fetchAccounts({ cookies }: { cookies: string }) {
+export async function fetchAccounts({
+    cookies,
+}: {
+    cookies: string;
+}): Promise<AmericanExpressAccount[] | undefined> {
     // First thing we do is set up a background refresh of the token so it
     // doesn't expire.
     // TODO (zeffron 2024-01-02) Make this refresh last only as long as the
@@ -87,29 +126,104 @@ export async function fetchAccounts({ cookies }: { cookies: string }) {
 
     // We discovered via reverse engineering that the state is serialized using
     // transit and Immutable.js.
-    const initialState = transit.fromJSON(serializedState);
-    const accounts = [
-        ...initialState
-            .get("modules")
-            ?.get("axp-myca-root")
-            .get("products")
-            .get("registry")
-            .get("types")
+    type InitialState = Map<
+        "modules",
+        Map<
+            "axp-myca-root",
+            Map<
+                "products",
+                Map<
+                    "registry" | "details",
+                    Map<
+                        "types",
+                        Map<
+                            AccountTypes,
+                            | {
+                                  type: AccountTypes;
+                                  opaqueAccountId: string;
+                                  isoCountryCode: string;
+                                  status: string;
+                                  role: string;
+                              }[]
+                            | {
+                                  productsList: {
+                                      [key: string]: {
+                                          product: {
+                                              description: string;
+                                              large_card_art: string;
+                                          };
+                                      };
+                                  };
+                              }
+                        >
+                    >
+                >
+            >
+        >
+    >;
+    const initialState: InitialState = transit.fromJSON(serializedState);
+    if (
+        !initialState.hasIn([
+            "modules",
+            "axp-myca-root",
+            "products",
+            "registry",
+            "types",
+        ])
+    ) {
+        // TODO (zeffron 2024-01-04) Handle the error correctly.
+        return;
+    }
+    const accounts: AmericanExpressAccount[] = Array.from(
+        initialState
+            .get("modules")!
+            .get("axp-myca-root")!
+            .get("products")!
+            .get("registry")!
+            .get("types")!
             .values(),
-    ].flat();
+    ).flat() as {
+        type: AccountTypes;
+        opaqueAccountId: string;
+        isoCountryCode: string;
+        status: string;
+        role: string;
+    }[];
+
+    if (
+        !initialState.hasIn([
+            "modules",
+            "axp-myca-root",
+            "products",
+            "details",
+            "types",
+        ])
+    ) {
+        // TODO (zeffron 2024-01-04) Handle the error correctly.
+        return;
+    }
     const initialDetails = initialState
-        .get("modules")
-        ?.get("axp-myca-root")
-        .get("products")
-        .get("details")
-        .get("types");
+        .get("modules")!
+        .get("axp-myca-root")!
+        .get("products")!
+        .get("details")!
+        .get("types")!;
 
     // Some accounts have their details in the initial state, so we extract it
     // from there.
     for (const account of accounts) {
-        const accountDetails = initialDetails.get(account.type)?.productsList[
-            account.opaqueAccountId
-        ];
+        const accountDetails = (
+            initialDetails.get(account.type)! as {
+                productsList: {
+                    [key: string]: {
+                        product: {
+                            description: string;
+                            large_card_art: string;
+                        };
+                    };
+                };
+            }
+        )?.productsList[account.opaqueAccountId];
         if (accountDetails === undefined) {
             continue;
         }
@@ -124,15 +238,18 @@ export async function fetchAccounts({ cookies }: { cookies: string }) {
         {
             method: "POST",
             body: JSON.stringify(
-                accounts.reduce((accounts, account) => {
-                    if (!Object.hasOwn(accounts, account.type)) {
-                        accounts[account.type] = { accountIds: [] };
-                    }
-                    accounts[account.type].accountIds.push(
-                        account.opaqueAccountId,
-                    );
-                    return accounts;
-                }, {}),
+                accounts.reduce(
+                    (accounts, account) => {
+                        if (!Object.hasOwn(accounts, account.type)) {
+                            accounts[account.type] = { accountIds: [] };
+                        }
+                        accounts[account.type].accountIds.push(
+                            account.opaqueAccountId,
+                        );
+                        return accounts;
+                    },
+                    {} as Record<AccountTypes, { accountIds: string[] }>,
+                ),
             ),
             headers: {
                 Cookie: cookies,

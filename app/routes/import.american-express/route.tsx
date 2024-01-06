@@ -11,7 +11,9 @@ import { z } from "zod";
 import { zx } from "zodix";
 
 import styles from "~/components/account-icon/component.module.css";
-import importer, { fetchAccounts } from "~/lib/importer/american-express";
+import importTransactions, {
+    fetchAccounts,
+} from "~/lib/importer/american-express";
 import { createAccount } from "~/lib/database/accounts";
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
@@ -77,6 +79,9 @@ export async function action({ request }: ActionFunctionArgs) {
         // constraint is violated), and we need to handle that appropriately.
         await createAccount(data);
     }
+
+    await importTransactions();
+
     return null;
 }
 
@@ -95,7 +100,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export const handle = {
-    importer: { name: "American Express", importer: importer },
+    importer: { name: "American Express", importer: importTransactions },
 };
 
 const Option = (

@@ -31,12 +31,18 @@ export default function App() {
             </head>
             <body>
                 <nav aria-label="Site navigation">
-                    <NavLink to="/accounts" prefetch="intent">
-                        Accounts
-                    </NavLink>
-                    <NavLink to="/import" prefetch="intent">
-                        Import
-                    </NavLink>
+                    <ul>
+                        <li>
+                            <NavLink to="/accounts" prefetch="intent">
+                                Accounts
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/import" prefetch="intent">
+                                Import
+                            </NavLink>
+                        </li>
+                    </ul>
                 </nav>
                 <Outlet />
                 <ScrollRestoration />
